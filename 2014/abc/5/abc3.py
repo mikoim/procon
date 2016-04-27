@@ -2,23 +2,6 @@
 http://abc005.contest.atcoder.jp/tasks/abc005_3
 """
 
-# ToDo: fix broken algorithm
-
-
-def generate_index(c, d, debug=False):
-    if d == 0:
-        return [c]
-
-    l = max(0, c - d)
-    r = c + d
-
-    z = list(range(l, r + 1))
-
-    if debug:
-        print(z)
-
-    return z
-
 
 def test():
     t = int(input())  # 何秒以内のたこ焼きまで売るか
@@ -32,29 +15,31 @@ def test():
     if n < m:
         return 'no'
 
-    # 塗り絵
-    tako = [0] * (max(max(a), max(b)) + t)
+    stock = []
 
-    for i in a:
-        for j in generate_index(i - 1, t):
-            tako[j] += 1
+    end = max(max(a), max(b)) + t
+    time = 1
 
-    # 検証
-    for i in b:
+    while time < end:
+        if len(b) == 0:
+            break
 
-        bad = True
+        if len(a) > 0 and a[0] == time:
+            del a[0]
+            stock.append(t + 1)
+            continue
 
-        for j in generate_index(i - 1, t):
-            if tako[j] > 0:
+        if b[0] == time:
+            del b[0]
+            if len(stock) == 0:
+                return 'no'
+            else:
+                stock.pop(0)
+            continue
 
-                for k in generate_index(j, t):
-                    tako[k] -= 1
+        stock = list(filter(lambda x: x > 0, map(lambda x: x - 1, stock)))
 
-                bad = False
-                break
-
-        if bad:
-            return 'no'
+        time += 1
 
     return 'yes'
 
