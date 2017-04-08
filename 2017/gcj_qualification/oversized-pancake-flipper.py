@@ -31,7 +31,7 @@ def bfs(cakes, flipper):
     states = [cakes]
 
     while True:
-        s = list(filter(lambda x: x not in visited, states))
+        s = [x for x in states if x not in visited]
 
         if len(s) == 0:
             return 'IMPOSSIBLE'
