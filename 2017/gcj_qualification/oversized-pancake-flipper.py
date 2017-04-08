@@ -22,26 +22,43 @@ def find_min_step(cakes, flipper):
     'IMPOSSIBLE'
     """
 
-    return bfs(cakes, flipper)
+    return bidirectional_search(cakes, flipper)
 
 
-def bfs(cakes, flipper):
+def bidirectional_search(cakes, flipper):
+    final = final_state(cakes)
     depth = 0
-    visited = {}
-    states = [cakes]
+
+    visited_f = {}
+    states_f = [cakes]
+
+    visited_b = {}
+    states_b = [final]
 
     while True:
-        s = [x for x in states if x not in visited]
+        # forward
+        s_f = [x for x in states_f if x not in visited_f]
 
-        if len(s) == 0:
+        for x in s_f:
+            visited_f[x] = depth
+        states_f = [cake for x in s_f for cake in next_states(x, flipper)]
+
+        # backward
+        s_b = [x for x in states_b if x not in visited_b]
+
+        for x in s_b:
+            visited_b[x] = depth
+        states_b = [cake for x in s_b for cake in next_states(x, flipper)]
+
+        # test
+        depth += 1
+
+        dup = [b for f in visited_f for b in visited_b if b == f]
+
+        if len(dup) != 0:
+            return visited_f[dup[0]] + visited_b[dup[0]]
+        elif len(s_f) == 0 or len(s_b) == 0:
             return 'IMPOSSIBLE'
-        elif final_state(cakes) in s:
-            return depth
-        else:
-            for x in s:
-                visited[x] = depth
-            states = [cake for x in s for cake in next_states(x, flipper)]
-            depth += 1
 
 
 @lru_cache(maxsize=None)
