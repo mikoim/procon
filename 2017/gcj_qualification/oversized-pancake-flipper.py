@@ -2,13 +2,7 @@
 A. Oversized Pancake Flipper
 """
 
-
-import sys
-
-import networkx as nx
-from networkx import NetworkXNoPath
-
-sys.setrecursionlimit(0x100000)
+from functools import lru_cache
 
 
 def main():
@@ -16,17 +10,6 @@ def main():
     for i in range(1, t + 1):
         cakes, flipper = input().split(" ")
         print("Case #{}: {}".format(i, find_min_step(cakes, int(flipper))))
-
-
-def memoize(f):
-    cache = {}
-
-    def helper(*args):
-        if args not in cache:
-            cache[args] = f(*args)
-        return cache[args]
-
-    return helper
 
 
 def find_min_step(cakes, flipper):
@@ -39,33 +22,29 @@ def find_min_step(cakes, flipper):
     'IMPOSSIBLE'
     """
 
-    if cakes == final_state(cakes):
-        return 0
-
-    nodes = {}
-    graph = nx.DiGraph()
-
-    gen_graph_dfs(cakes, flipper, graph, nodes, 1)
-
-    try:
-        return nx.dijkstra_path_length(graph, cakes, final_state(cakes))
-    except NetworkXNoPath:
-        return 'IMPOSSIBLE'
+    return bfs(cakes, flipper)
 
 
-def gen_graph_dfs(cakes, flipper, graph, nodes, depth):
-    for nc in next_states(cakes, flipper):
-        if nc in nodes and depth > nodes[nc]:
-            continue
+def bfs(cakes, flipper):
+    depth = 0
+    visited = {}
+    states = [cakes]
 
-        graph.add_node(nc)
-        graph.add_edge(cakes, nc)
-        nodes[nc] = depth
+    while True:
+        s = list(filter(lambda x: x not in visited, states))
 
-        gen_graph_dfs(nc, flipper, graph, nodes, depth + 1)
+        if len(s) == 0:
+            return 'IMPOSSIBLE'
+        elif final_state(cakes) in s:
+            return depth
+        else:
+            for x in s:
+                visited[x] = depth
+            states = [cake for x in s for cake in next_states(x, flipper)]
+            depth += 1
 
 
-@memoize
+@lru_cache(maxsize=None)
 def next_states(cakes, flipper):
     """
     >>> next_states('++++', 2)
@@ -85,7 +64,7 @@ def next_states(cakes, flipper):
     return [flip_cakes(cakes, flipper, i) for i in range(len(cakes) - flipper + 1)]
 
 
-@memoize
+@lru_cache(maxsize=None)
 def flip_cakes(cakes, flipper, index):
     """
     >>> flip_cakes('---+-++-', 3, 0)
@@ -99,7 +78,7 @@ def flip_cakes(cakes, flipper, index):
     return cakes[:index] + ''.join(map(flip_cake, cakes[index:index + flipper])) + cakes[index + flipper:]
 
 
-@memoize
+@lru_cache(maxsize=None)
 def flip_cake(cake):
     """
     >>> flip_cake('+')
@@ -111,7 +90,7 @@ def flip_cake(cake):
     return '+' if cake == '-' else '-'
 
 
-@memoize
+@lru_cache(maxsize=None)
 def final_state(cakes):
     """
     >>> final_state('---+-++-')
